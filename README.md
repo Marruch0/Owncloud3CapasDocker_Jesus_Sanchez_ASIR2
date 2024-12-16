@@ -641,6 +641,7 @@ Finalmente, se le otorgan al usuario **`ownclouduser`** todos los privilegios ne
 ### Código-basededatos.sh
 
 ```bash
+#!/bin/bash
 # Definición de variables para el acceso a la base de datos
 DB_USER=ownclouduser  # Nombre del usuario de la base de datos para OwnCloud
 DB_PASS=pass190863     # Contraseña para el usuario de la base de datos
