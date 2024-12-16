@@ -46,6 +46,7 @@ Esto asegura que las solicitudes al dominio **`jesusnube.com`** se redirijan a l
 Además, después de ejecutar el comando **`docker-compose up`** para levantar los contenedores, es importante esperar entre **10 y 20 segundos** para que todos los servicios, como la base de datos y **OwnCloud**, se configuren correctamente. Es recomendable no acceder a la aplicación inmediatamente después de levantar los contenedores, ya que los servicios aún pueden estar inicializándose.
 
 Para evitar que la terminal se quede ocupada, recomiendo usar la opción **`-d`**, lo cual levanta los contenedores en segundo plano y permite seguir usando la terminal mientras se configuran los servicios.
+
 Recuerdo también que las credenciales para acceder a OwnCloud son admin como usuario y admin como contraseña.
 
 # Introducción
