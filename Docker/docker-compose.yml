@@ -1,0 +1,100 @@
+services:
+  # Balanceador de carga
+  balanceadorasir:
+    build: 
+      context: balanceador/   # Directorio donde se encuentra el Dockerfile para construir la imagen
+      dockerfile: Dockerfile  # Nombre del archivo Dockerfile
+    container_name: balanceador_asir  # Nombre del contenedor
+    networks:
+      red-capa-1:
+        ipv4_address: 192.168.22.2  # Dirección IP estática en la red-capa-1
+      red-capa-2:
+        ipv4_address: 192.168.23.2  # Dirección IP estática en la red-capa-2
+    ports:
+      - "80:80"    # Mapea el puerto 80 del contenedor al puerto 80 del host
+      - "443:443"  # Mapea el puerto 443 del contenedor al puerto 443 del host
+    restart: unless-stopped  # Reinicia el contenedor a menos que se detenga manualmente
+
+  # Servidor Nginx 1
+  nginx1asir:
+    build:
+      context: nginx1/          # Directorio donde se encuentra el Dockerfile para la imagen de Nginx 1
+      dockerfile: Dockerfile    # Nombre del archivo Dockerfile
+    container_name: nginx1_asir  # Nombre del contenedor
+    volumes:
+      - asirown:/var/www/owncloud  # Monta el volumen asirown en el contenedor para persistir datos de OwnCloud
+    networks:
+      red-capa-2:
+        ipv4_address: 192.168.23.3  # Dirección IP estática en la red-capa-2
+    ports:
+      - "81:80"  # Mapea el puerto 80 del contenedor al puerto 81 del host
+    restart: unless-stopped  # Reinicia el contenedor a menos que se detenga manualmente
+    depends_on:
+      - balanceadorasir  # Este contenedor depende del contenedor balanceadora, se inicia después de él
+
+  # Servidor Nginx 2
+  nginx2asir:
+    build:
+      context: nginx2/        # Directorio donde se encuentra el Dockerfile para la imagen de Nginx 2
+      dockerfile: Dockerfile  # Nombre del archivo Dockerfile
+    container_name: nginx2_asir  # Nombre del contenedor
+    volumes:
+      - asirown:/var/www/owncloud  # Monta el volumen asirown en el contenedor para persistir datos de OwnCloud
+    networks:
+      red-capa-2:
+        ipv4_address: 192.168.23.4  # Dirección IP estática en la red-capa-2
+    ports:
+      - "82:80"  # Mapea el puerto 80 del contenedor al puerto 82 del host
+    restart: unless-stopped  # Reinicia el contenedor a menos que se detenga manualmente
+    depends_on:
+      - balanceadorasir  # Este contenedor depende del contenedor balanceadora, se inicia después de él
+
+  # Servidor PHP (PHP-FPM)
+  phpasir:
+    build:
+      context: php/          # Directorio donde se encuentra el Dockerfile para la imagen de PHP
+      dockerfile: Dockerfile  # Nombre del archivo Dockerfile
+    container_name: php7.4-fpm_asir  # Nombre del contenedor
+    volumes:
+      - asirown:/var/www/owncloud  # Monta el volumen asirown en el contenedor para persistir datos de OwnCloud
+    networks:
+      red-capa-2:
+        ipv4_address: 192.168.23.7  # Dirección IP estática en la red-capa-2
+
+  # Base de datos MariaDB
+  mariadbasir:
+    container_name: mariadb_asir  # Nombre del contenedor
+    image: mariadb  # Utiliza la imagen oficial de MariaDB
+    environment:
+      MARIADB_ROOT_PASSWORD: nuevacontraseña1234  # Contraseña para el usuario root de MariaDB
+    volumes:
+      - ./database/basedatos.sh:/docker-entrypoint-initdb.d/base.sh  # Script de inicialización de la base de datos
+    networks:
+      red-capa-2:
+        ipv4_address: 192.168.23.5  # Dirección IP estática en la red-capa-2
+      red-capa-3:
+        ipv4_address: 192.168.24.2  # Dirección IP estática en la red-capa-3
+    restart: unless-stopped  # Reinicia el contenedor a menos que se detenga manualmente
+
+# Definición de volúmenes
+volumes:
+  asirown: 
+    driver: local  # Usa el driver local para persistir datos en el volumen asirown
+
+# Definición de redes
+networks:
+  red-capa-1:
+    driver: bridge  # Utiliza el driver 'bridge' para la red
+    ipam:
+      config:
+        - subnet: 192.168.22.0/24  # Rango de direcciones IP para la red-capa-1
+  red-capa-2:
+    driver: bridge  # Utiliza el driver 'bridge' para la red
+    ipam:
+      config:
+        - subnet: 192.168.23.0/24  # Rango de direcciones IP para la red-capa-2
+  red-capa-3:
+    driver: bridge  # Utiliza el driver 'bridge' para la red
+    ipam:
+      config:
+        - subnet: 192.168.24.0/24  # Rango de direcciones IP para la red-capa-3
